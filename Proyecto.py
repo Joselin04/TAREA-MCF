@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 from scipy.stats import kurtosis, skew, shapiro, norm
 
-st.title("¡Hola, Streamlit desde VS Code! 🎈")
+print("¡Hola, Streamlit desde VS Code! 🎈")
 st.write("Esta es una prueba de Streamlit.")
 
 alumnos = pd.Series( ['Mau', 'Mayte', 'Jair', 'Francisco'] )
