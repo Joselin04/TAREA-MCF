@@ -1,5 +1,10 @@
 import pandas as pd
 import streamlit as st
+import numpy as np
+import yfinance as yf
+import matplotlib.pyplot as plt
+import scipy.stats as stats
+from scipy.stats import kurtosis, skew, shapiro, norm
 
 st.title("¡Hola, Streamlit desde VS Code! 🎈")
 st.write("Esta es una prueba de Streamlit.")
