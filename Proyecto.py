@@ -30,10 +30,10 @@ grados_lib_bimbo = len(df_bimbo_rend)-1
 
 alphas = [0.95, 0.975, 0.99]
 
-st.metric("Rendimiento Medio Diario", f"{media_bimbo:.4%}")
+'''st.metric("Rendimiento Medio Diario", f"{media_bimbo:.4%}")
 st.metric("Desviación Estándar", f"{desv_std_bimbo:.4f}")
 st.metric("Curtosis", f"{curtosis_bimbo:.4f}")
-st.metric("Sesgo", f"{sesgo_bimbo:.4f}")
+st.metric("Sesgo", f"{sesgo_bimbo:.4f}")'''
 
 
 #for a in alphas:
@@ -99,8 +99,8 @@ vaR_rolling_df.set_index('Date', inplace=True)
 #plt.tight_layout()
 #plt.show()
 
-#valores = vaR_rolling_df.iloc[[251,252,253,254,255]]
-#print(valores)
+valores = vaR_rolling_df.iloc[[250,251,252,253,254,255]]
+print(valores)
 #print(vaR_rolling_df.tail())
 print(desv_std_bimbo)
 
