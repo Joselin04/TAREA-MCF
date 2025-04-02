@@ -116,19 +116,45 @@ for alpha, valores in VaR_MonteCarlo.items():
 rolling_mean = df_bimbo_rend.rolling(window=252).mean()
 rolling_std = df_bimbo_rend.rolling(window=252).std()
 
-VaR_95_rolling = norm.ppf(1-0.95, rolling_mean, rolling_std)
-VaR_95_rolling_percent = (VaR_95_rolling * 100).round(4)
 
-vaR_rolling_df = pd.DataFrame({'Date': df_bimbo_rend.index, '95% VaR Rolling': VaR_95_rolling_percent.squeeze()})
-vaR_rolling_df.set_index('Date', inplace=True)
+VaR_roll_p = {}
+for a in alphas:
+    VaR_roll_n = MCF.VaR_rolling(a, rolling_mean, rolling_std)
+    VaR_roll_p [a] = {"VaR Parametrico Rolling":VaR_roll_n}
+
+
+#Dataframe que visualiza los datos conforme a la fecha
+resultados = {}
+for alpha, valores in VaR_roll_p.items():
+    resultados[alpha] = valores["VaR Parametrico Rolling"].squeeze()
+
+fechas = df_bimbo_rend.index  
+var_dataframe = pd.DataFrame(resultados, index=fechas)
+
+var_dataframe.columns = [f"{alpha} VaR Rolling" for alpha in var_dataframe.columns]
+
+print(var_dataframe)
 
 plt.figure(figsize=(14, 7))
+
+# Graficar los rendimientos diarios
 plt.plot(df_bimbo_rend.index, df_bimbo_rend * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
-plt.plot(vaR_rolling_df.index, vaR_rolling_df['95% VaR Rolling'], label='95% Rolling VaR', color='red')
-plt.title('Daily Returns and 95% Rolling VaR')
+
+# Graficar los VaR para cada alpha
+plt.plot(var_dataframe.index, var_dataframe['0.95 VaR Rolling'], label='95% Rolling VaR', color='red')
+plt.plot(var_dataframe.index, var_dataframe['0.975 VaR Rolling'], label='97.5% Rolling VaR', color='orange')
+plt.plot(var_dataframe.index, var_dataframe['0.99 VaR Rolling'], label='99% Rolling VaR', color='green')
+
+
+# Títulos 
+plt.title('Daily Returns and Rolling VaR for Multiple Alphas')
 plt.xlabel('Date')
 plt.ylabel('Values (%)')
+
+# Agregar la leyenda
 plt.legend()
+
+# Ajustar diseño y mostrar la gráfica
 plt.tight_layout()
-plt.show()
+plt.savefig("VAR_p.png", dpi=300)  # Guarda la figura como archivo PNG
 

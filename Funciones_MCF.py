@@ -15,7 +15,7 @@ def obtener_datos(accion):
 def calcular_rendimientos(df):
     return df.pct_change().dropna()
 
-#Funcion para calcular el VaR parametrico de una Normal y una t-student 
+#Funcion para calcular el VaR 
 def VaR_parametrico(a, media, stdv, grd_lib):
     pVaR_n = (norm.ppf(1-a, media, stdv,))
     pVaR_t = (stats.t.ppf(1-a, grd_lib, media,stdv))
@@ -34,6 +34,13 @@ def VaR_historico (df, a):
     hVaR = (df.quantile(1-a))
     return hVaR
 
+#Funcion para calcular ES
 def CVaR (df, VaR):
     CVaR = np.mean(df[df <= VaR])
     return CVaR
+
+#Funcion para calcular el VaR rolling
+def VaR_rolling (alpha, media, desv):
+    VaR_n_rolling = norm.ppf(1-alpha, media, desv)
+    VaR_n_rll_percent = (VaR_n_rolling * 100).round(4)
+    return VaR_n_rll_percent
