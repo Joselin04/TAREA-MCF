@@ -34,3 +34,6 @@ def VaR_historico (df, a):
     hVaR = (df.quantile(1-a))
     return hVaR
 
+def CVaR (df, VaR):
+    CVaR = np.mean(df[df <= VaR])
+    return CVaR

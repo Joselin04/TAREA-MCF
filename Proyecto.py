@@ -35,6 +35,10 @@ sesgo =  float(sesgo_bimbo.item())
 desv_std_bimbo = np.std(df_bimbo_rend)
 stdv = float(desv_std_bimbo.iloc[0])
 
+print(f"Media: {media_bimbo},  {stdv}, Sesgo:{sesgo_bimbo}")
+print(media_bimbo,curtosis_bimbo,sesgo_bimbo,desv_std_bimbo)
+print(media, curtosis, sesgo, stdv)
+
 #Calculamos los grados de libertad para usar una distribucion t-student en nuestros redimientos diarios.
 grados_lib_bimbo = len(df_bimbo_rend)-1
 
@@ -53,16 +57,22 @@ for p in alphas:
 
 print("\nVaR bajo una aproximacion parametrica: ")
 for alpha, valores in VaR_parametricos.items():
+    #pvar_n = float(valores["VaR Normal"].item())  # Convertir a numero
+    #pvar_t = float(valores["VaR t-Student"].item())
     print(f"Alpha: {alpha} | VaR Normal: {pVaR_n:.6f} | VaR t-Student: {pVaR_t:.6f}")
+
 
 VaR_MonteCarlo = {}
 for m in alphas:
-    MCVaR_n, MCVaR_t = MCF.VaR_MonteCarlo(m, media, stdv, grados_lib_bimbo)
+    MCVaR_n, MCVaR_t = MCF.VaR_MonteCarlo(m, media_bimbo, desv_std_bimbo, grados_lib_bimbo)
     VaR_MonteCarlo[m] = {"VaR Normal": MCVaR_n, "VaR t-Student": MCVaR_t}
 
 print("\nVaR bajo una aproximacion Monte Carlo: ")
 for alpha, valores in VaR_MonteCarlo.items():
-    print(f"Alpha: {alpha} | VaR Normal: {MCVaR_n:.6f} | VaR t-Student: {MCVaR_t:.6f}")
+    MCvar_n = float(valores["VaR Normal"])  # Convertir a numero
+    MCvar_t = float(valores["VaR t-Student"])
+    print(f"Alpha: {alpha} | VaR Normal: {MCvar_n:.6f} | VaR t-Student: {MCvar_t:.6f}")
+
 
 VaR_historicos = {}
 for h in alphas:
@@ -74,13 +84,33 @@ for alpha, valores in VaR_historicos.items():
     hVaR = float(valores["VaR historico"].iloc[0])
     print(f"Alpha: {alpha} | VaR historico: {hVaR:.6f}")
 
-#CVaR historico para una dist normal
-CVaR_95_his = np.mean(df_bimbo_rend[df_bimbo_rend <= VaR_n_95])
-CVaR_99_his = np.mean(df_bimbo_rend[df_bimbo_rend <= VaR_n_99])
 
-#CVaR parametrico para una dist normal
-CVaR_95_par = np.mean(df_bimbo_rend[df_bimbo_rend <= hVaR_n_95])
-CVaR_99_par = np.mean(df_bimbo_rend[df_bimbo_rend <= hVaR_n_99])
+#CVaR historico 
+print("\nCVaR bajo una aproximacion historica: ")
+for alpha, valores in VaR_historicos.items():
+    hVaR = float(valores["VaR historico"].iloc[0])
+    CVaR_h = MCF.CVaR(df_bimbo_rend, valores["VaR historico"].iloc[0])
+    print(f"Alpha: {alpha} | CVaR historico: {CVaR_h:.6f}")
+
+#CVaR parametrico para una dist normal y t-student
+print("\nCVaR bajo una aproximacion parametrica: ")
+for alpha, valores in VaR_parametricos.items():
+    pVaR_n = float(valores["VaR Normal"])
+    pVaR_t = float(valores["VaR t-Student"])
+    CVaR_p_n = MCF.CVaR(df_bimbo_rend, valores["VaR Normal"])
+    CVaR_p_t = MCF.CVaR(df_bimbo_rend, valores["VaR t-Student"])
+    print(f"Alpha: {alpha} | CVaR Normal: {CVaR_p_n:.6f} | CVaR t-Student: {CVaR_p_t:.6f}")
+
+#CVaR Monte Carlo para una dist normal y t-student
+print("\nCVaR bajo una aproximacion Monte Carlo: ")
+for alpha, valores in VaR_MonteCarlo.items():
+    MCvar_n = float(valores["VaR Normal"])
+    MCvar_t = float(valores["VaR t-Student"])
+    CVaR_MC_n = MCF.CVaR(df_bimbo_rend, valores["VaR Normal"])
+    CVaR_MC_t = MCF.CVaR(df_bimbo_rend, valores["VaR t-Student"])
+    print(f"Alpha: {alpha} | CVaR Normal: {CVaR_MC_n:.6f} | CVaR t-Student: {CVaR_MC_t:.6f}")
+
+
 
 #Rolling Window
 rolling_mean = df_bimbo_rend.rolling(window=252).mean()
