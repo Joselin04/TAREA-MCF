@@ -39,8 +39,14 @@ def CVaR (df, VaR):
     CVaR = np.mean(df[df <= VaR])
     return CVaR
 
-#Funcion para calcular el VaR rolling
-def VaR_rolling (alpha, media, desv):
+#Funcion para calcular el VaR rolling parametrico
+def VaR_rolling_p (alpha, media, desv):
     VaR_n_rolling = norm.ppf(1-alpha, media, desv)
     VaR_n_rll_percent = (VaR_n_rolling * 100).round(4)
     return VaR_n_rll_percent
+
+#Funcion para calcular el VaR rolling historico
+def VaR_rolling_his (df, a):
+    hVaR = (df.quantile(1-a))
+    hVaR_perc = (hVaR*100).round(4)
+    return hVaR_perc
