@@ -82,3 +82,4 @@ print("\n CVaR bajo una aproximacion historica: ")
 #for alpha, valores in VaR_historicos.items():
 #  print(f"Alpha: {alpha} | CVaR historico: {Val_HVaR:.6f}")
 
+

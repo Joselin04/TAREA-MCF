@@ -50,3 +50,9 @@ def VaR_rolling_his (df, a):
     hVaR = (df.quantile(1-a))
     hVaR_perc = (hVaR*100).round(4)
     return hVaR_perc
+
+#Funcion para calcular ES Rolling
+def CVaR_rolling (df, VaR):
+    CVaR = np.mean(df[df <= VaR])
+    CVaR_perc = round(CVaR,4)
+    return CVaR_perc

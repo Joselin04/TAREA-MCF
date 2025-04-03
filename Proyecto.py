@@ -147,32 +147,52 @@ elif aprox_seleccionado == "Monte Carlo":
 #Rolling Window
 rolling_mean = df_bimbo_rend.rolling(window=252).mean()
 rolling_std = df_bimbo_rend.rolling(window=252).std()
-rolling_hist = df_bimbo_rend.rolling(window=252)
+rolling_df = df_bimbo_rend.rolling(window=252)
 
 #VaR parametrico rolling window
 VaR_roll_p = {}
 for a in alphas:
-    VaR_roll_n = MCF.VaR_rolling_p(a, rolling_mean, rolling_std)
-    VaR_roll_p [a] = {"VaR Parametrico Rolling":VaR_roll_n}
+    VaR_roll_pn = MCF.VaR_rolling_p(a, rolling_mean, rolling_std)
+    VaR_roll_p [a] = {"VaR Parametrico Rolling":VaR_roll_pn}
 
 #VaR historico rolling window
 VaR_roll_h = {}
 for a in alphas:
-    VaR_roll_h = MCF.VaR_rolling_p(a, rolling_mean, rolling_std)
-    VaR_roll_p [a] = {"VaR Parametrico Rolling":VaR_roll_n}
+    VaR_roll_hn  = MCF.VaR_rolling_his(rolling_df,a)
+    VaR_roll_h [a] = {"VaR Historico Rolling":VaR_roll_hn}
 
 
-#Dataframe que visualiza los datos conforme a la fecha
+# Crear un DataFrame para el VaR Paramétrico
 resultados = {}
 for alpha, valores in VaR_roll_p.items():
     resultados[alpha] = valores["VaR Parametrico Rolling"].squeeze()
+parametrico_df = pd.DataFrame(resultados, index=df_bimbo_rend.index)
 
+    #Agregar fechas al DF
 fechas = df_bimbo_rend.index  
 var_dataframe = pd.DataFrame(resultados, index=fechas)
 
 var_dataframe.columns = [f"{alpha} VaR P Rolling" for alpha in var_dataframe.columns]
-
 print(var_dataframe)
+
+#CVaR
+CVaR_df_p = parametrico_df.applymap(lambda x: MCF.CVaR_rolling(parametrico_df, x))
+
+# Crear un DataFrame para el VaR Histórico
+historico_resultados = {}
+for alpha, valores in VaR_roll_h.items():
+    historico_resultados[alpha] = valores["VaR Historico Rolling"].squeeze()
+historico_df = pd.DataFrame(historico_resultados, index=df_bimbo_rend.index)
+
+    #historico con fechas
+fechas = df_bimbo_rend.index  
+VaR_h_df = pd.DataFrame(historico_resultados, index=fechas)
+
+VaR_h_df.columns = [f"{alpha} VaR H Rolling" for alpha in VaR_h_df.columns]
+
+#CVaR
+CVaR_df_h = historico_df.applymap(lambda x: MCF.CVaR_rolling(historico_df, x))
+
 
 plt.figure(figsize=(14, 7))
 
@@ -183,6 +203,11 @@ plt.plot(df_bimbo_rend.index, df_bimbo_rend * 100, label='Daily Returns (%)', co
 plt.plot(var_dataframe.index, var_dataframe['0.95 VaR P Rolling'], label='95% Rolling VaR Parametrico', color='red')
 plt.plot(var_dataframe.index, var_dataframe['0.975 VaR P Rolling'], label='97.5% Rolling VaR Parametrico', color='orange')
 plt.plot(var_dataframe.index, var_dataframe['0.99 VaR P Rolling'], label='99% Rolling VaR Parametrico', color='green')
+
+plt.plot(VaR_h_df.index, VaR_h_df['0.95 VaR H Rolling'], label='95% Rolling VaR Historico', color='purple')
+plt.plot(VaR_h_df.index, VaR_h_df['0.975 VaR H Rolling'], label='97.5% Rolling VaR Historico', color='blue')
+plt.plot(VaR_h_df.index, VaR_h_df['0.99 VaR H Rolling'], label='99% Rolling VaR Historico', color='yellow')
+
 
 
 # Títulos 
@@ -195,5 +220,32 @@ plt.legend()
 
 # Ajustar diseño y mostrar la gráfica
 plt.tight_layout()
-plt.savefig("VAR_p.png", dpi=300)  # Guarda la figura como archivo PNG
+plt.savefig("VAR.png", dpi=300)  # Guarda la figura como archivo PNG
 
+#Graficar CVaR 
+plt.figure(figsize=(14, 7))
+
+# Graficar los rendimientos diarios
+plt.plot(df_bimbo_rend.index, df_bimbo_rend * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
+
+# Graficar los VaR para cada alpha
+plt.plot(CVaR_df_p.index, CVaR_df_p[0.95], label='95% Rolling CVaR Parametrico', color='red')
+plt.plot(CVaR_df_p.index, CVaR_df_p[0.975], label='97.5% Rolling CVaR Parametrico', color='orange')
+plt.plot(CVaR_df_p.index, CVaR_df_p[0.99], label='99% Rolling CVaR Parametrico', color='green')
+
+plt.plot(CVaR_df_h.index,CVaR_df_h[0.95], label='95% Rolling CVaR Historico', color='purple')
+plt.plot(CVaR_df_h.index,CVaR_df_h[0.975], label='97.5% Rolling CVaR Historico', color='blue')
+plt.plot(CVaR_df_h.index,CVaR_df_h[0.99], label='99% Rolling CVaR Historico', color='yellow')
+
+
+# Títulos 
+plt.title('Daily Returns and Rolling VaR for Multiple Alphas')
+plt.xlabel('Date')
+plt.ylabel('Values (%)')
+
+# Agregar la leyenda
+plt.legend()
+
+# Ajustar diseño y mostrar la gráfica
+plt.tight_layout()
+plt.savefig("CVAR.png", dpi=300)  # Guarda la figura como archivo PNG
