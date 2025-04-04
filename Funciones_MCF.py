@@ -56,3 +56,49 @@ def CVaR_rolling (df, VaR):
     CVaR = np.mean(df[df <= VaR])
     CVaR_perc = round(CVaR,4)
     return CVaR_perc
+
+def calcular_violaciones(retornos, alpha, ventana=252):
+    violaciones_VaR_p = []
+    violaciones_CVaR_p = []
+    violaciones_VaR_h = []
+    violaciones_CVaR_h = []
+    
+    for i in range(ventana, len(retornos)):
+        datos_historicos = retornos[i-ventana:i]
+        media = datos_historicos.mean()
+        desv = datos_historicos.std()
+         #rolling_mean = df_bimbo_rend.rolling(window=252).mean()
+         #rolling_std = df_bimbo_rend.rolling(window=252).std()
+        
+        VaR_p = (VaR_rolling_p(alpha, media, desv))
+        CVaR_p = CVaR_rolling(datos_historicos, VaR_p)
+        VaR_h = (VaR_rolling_his(datos_historicos, alpha))
+        CVaR_h = CVaR_rolling(datos_historicos, VaR_h)
+
+        
+        violaciones_VaR_p.append(retornos.iloc[0] <(VaR_p/1000))
+        violaciones_CVaR_p.append(retornos.iloc[0] < CVaR_p)
+        violaciones_VaR_h.append(retornos.iloc[0] <(VaR_h/1000))
+        violaciones_CVaR_h.append(retornos.iloc[0] < CVaR_h)
+    
+    total_VaR_p = sum(violaciones_VaR_p)
+    total_CVaR_p = sum(violaciones_CVaR_p)
+    total_VaR_h = sum(violaciones_VaR_h)
+    total_CVaR_h = sum(violaciones_CVaR_h)
+    
+    porcentaje_VaR_p = (total_VaR_p / (len(retornos) - ventana))*100
+    porcentaje_CVaR_p= (total_CVaR_p / (len(retornos) - ventana))*100
+    porcentaje_VaR_h = (total_VaR_h / (len(retornos) - ventana))*100
+    porcentaje_CVaR_h= (total_CVaR_h / (len(retornos) - ventana))*100
+    
+    return total_VaR_p, porcentaje_VaR_p, total_CVaR_p, porcentaje_CVaR_p, total_VaR_h, porcentaje_VaR_h, total_CVaR_h, porcentaje_CVaR_h
+
+
+def calcular_var_volatilidad_movil(serie_rendimientos, alphas=[0.05, 0.01], window=252): 
+    # Calculamos volatilidad móvil 
+    std_roll = serie_rendimientos.rolling(window).std() 
+    resultados = pd.DataFrame(index=serie_rendimientos.index) 
+    for alpha in alphas: 
+        q_alpha = norm.ppf(alpha) 
+        resultados[f'VaR Vol Móvil ({alpha})'] = q_alpha * std_roll 
+    return resultados.dropna() 
